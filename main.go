@@ -16,19 +16,31 @@ import (
 	"github.com/reasje/go_discord_thread_saver/config"
 )
 
+var quit chan bool
+
 func threadKeepAliveBackgroundTask() {
-	ticker := time.NewTicker(5 * time.Second)
-	for _ = range ticker.C {
-
-		// reading threads from file
-		err := entity.ReadThreads()
-
-		if err != nil {
-			fmt.Println("Error reading threads ")
-			return
+	for true {
+		select {
+			
+			case <- quit:
+				return
+			default:
+				ticker := time.NewTicker(10 * time.Second)
+				for _ = range ticker.C {
+		
+					// reading threads from file
+					err := entity.ReadThreads()
+		
+					if err != nil {
+						fmt.Println("Error reading threads ")
+						return
+					}
+		
+					bot.SendMessage()
+				}
+			
 		}
 
-		bot.SendMessage()
 	}
 }
 
@@ -38,55 +50,36 @@ func getUserResfreshBackgroundTask() {
 		fmt.Scanln(&userInput)
 		userInput = strings.ToLower(userInput)
 		if userInput == "r" {
-			fmt.Println("List of games:")
+			fmt.Println("Restating thread keep alive task")
+			quit <- true
+			go threadKeepAliveBackgroundTask()
 		}
 	}
 }
 
 func main() {
 
+	for true {
 
-	err := entity.ReadThreads()
+		err := config.ReadConfig()
 
-	if err != nil {
-		fmt.Println(err.Error())
-		return
+		if err != nil {
+			fmt.Println(err.Error())
+
+		}
+
+		bot.Start()
+
+		quit = make(chan bool)
+
+		// keeping the task in the background up and running
+		go threadKeepAliveBackgroundTask()
+
+		go getUserResfreshBackgroundTask()
+
+		// this keeps our threads running
+		select {}
+
 	}
-
-
-	err = config.ReadConfig()
-
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-
-	bot.Start()
-
-	// keeping the task in the background up and running
-	go threadKeepAliveBackgroundTask()
-
-	go getUserResfreshBackgroundTask()
-
-
-	// go func() {
-
-	// 	time.Sleep(5 * time.Second)
-	// 	<-ticker.C
-	// 	fmt.Println("Tick at")
-
-	// }()
-
-	// for {
-	// 	var userInput string
-	// 	fmt.Scanln(&userInput)
-	// 	userInput = strings.ToLower(userInput)
-	// 	if userInput == "r" {
-	// 		// TODO get the list from file  agian
-	// 		fmt.Println("List of games:")
-	// 	}
-	// }
-
-	select {}
 
 }
