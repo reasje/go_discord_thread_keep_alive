@@ -12,20 +12,20 @@ import (
 	// "os"
 	// "os/signal"
 	// "github.com/bwmarrin/discordgo"
-	"github.com/reasje/go_discord_thread_saver/bot"
+	"github.com/reasje/go_discord_thread_saver/bot" 
 	"github.com/reasje/go_discord_thread_saver/config"
 )
 
 var quit chan bool
 
-func threadKeepAliveBackgroundTask() {
-	for true {
+func threadKeepAliveBackgroundTask(quit chan bool) {
 		select {
 			
 			case <- quit:
+				fmt.Println("**Shutting down**")
 				return
 			default:
-				ticker := time.NewTicker(10 * time.Second)
+				ticker := time.NewTicker(1 * time.Second)
 				for _ = range ticker.C {
 		
 					// reading threads from file
@@ -41,10 +41,10 @@ func threadKeepAliveBackgroundTask() {
 			
 		}
 
-	}
+	
 }
 
-func getUserResfreshBackgroundTask() {
+func getUserResfreshBackgroundTask(quit chan bool) {
 	for {
 		var userInput string
 		fmt.Scanln(&userInput)
@@ -52,7 +52,7 @@ func getUserResfreshBackgroundTask() {
 		if userInput == "r" {
 			fmt.Println("Restating thread keep alive task")
 			quit <- true
-			go threadKeepAliveBackgroundTask()
+			// go threadKeepAliveBackgroundTask()
 		}
 	}
 }
@@ -73,9 +73,9 @@ func main() {
 		quit = make(chan bool)
 
 		// keeping the task in the background up and running
-		go threadKeepAliveBackgroundTask()
+		go threadKeepAliveBackgroundTask(quit)
 
-		go getUserResfreshBackgroundTask()
+		go getUserResfreshBackgroundTask(quit)
 
 		// this keeps our threads running
 		select {}
