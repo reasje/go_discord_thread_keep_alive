@@ -25,23 +25,27 @@ func threadKeepAliveBackgroundTask(quit chan bool) {
 				fmt.Println("**Shutting down**")
 				return
 			default:
-				ticker := time.NewTicker(1 * time.Second)
+				keepAlive()
+				ticker := time.NewTicker(1 * time.Minute)
 				for _ = range ticker.C {
-		
-					// reading threads from file
-					err := entity.ReadThreads()
-		
-					if err != nil {
-						fmt.Println("Error reading threads ")
-						return
-					}
-		
-					bot.SendMessage()
+					keepAlive()
 				}
 			
 		}
 
 	
+}
+
+func keepAlive() {
+						// reading threads from file
+	err := entity.ReadThreads()
+
+	if err != nil {
+		fmt.Println("Error reading threads ")
+		return
+	}
+
+	bot.SendMessage()
 }
 
 func getUserResfreshBackgroundTask(quit chan bool) {
