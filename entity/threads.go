@@ -28,7 +28,7 @@ type Thread struct {
 
 func ReadThreads() error {
 	fmt.Println("Reading config file...")
-	file, err := ioutil.ReadFile("./threads.json") // ioutil package's ReadFile method which we read config.json and return it's value we will then store it in file variable and if an error ocurrs it will be stored in err .
+	file, err := ioutil.ReadFile("./channels.json") // ioutil package's ReadFile method which we read config.json and return it's value we will then store it in file variable and if an error ocurrs it will be stored in err .
 
 	//Handling error and printing it using fmt package's Println function and returning it .
 	if err != nil {
