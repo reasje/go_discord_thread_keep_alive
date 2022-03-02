@@ -2,41 +2,33 @@ package main
 
 import (
 	"fmt"
-	// "strconv"
 	"strings"
 
-	"time"
-
-	"github.com/reasje/go_discord_thread_saver/entity"
-
-	// "log"
-	// "os"
-	// "os/signal"
-	// "github.com/bwmarrin/discordgo"
-	"github.com/reasje/go_discord_thread_saver/bot"
-	"github.com/reasje/go_discord_thread_saver/config"
+	"github.com/reasje/go_discord_thread_saver/internal/metadata"
+	"github.com/reasje/go_discord_thread_saver/internal/storage"
+	"github.com/reasje/go_discord_thread_saver/services/bot"
+	"github.com/reasje/go_discord_thread_saver/services/config"
+	"github.com/reasje/go_discord_thread_saver/services/ticker"
 )
 
-// var quit chan bool
+// IDEA:  resstructure the project to make it more readable (handle protocols)
+// IDEA: handeling failures (retry till success )
 
-// This app is designed to work with a single ticker
-// This ticker handles the message sending action 
-var ticker *time.Ticker 
+
 
 func threadKeepAliveBackgroundTask(c chan string) {
 	
 	for {
 	 m := <-c
 		
-		if m == config.REFRESH {
-			fmt.Println("**Refreshing On down**")
+		if m == metadata.REFRESH {
 			// if there is no an active ticker running
 			// then It means
-			if ticker != nil {
-				ticker.Stop()
-				go startTicker()
+			if storage.Ticker != nil {
+				ticker.StopTicker()
+				go ticker.StartTicker()
 			}else{
-				go startTicker()
+				go ticker.StartTicker()
 			}
 		}else {
 			fmt.Println("Invalid Signal")
@@ -45,29 +37,12 @@ func threadKeepAliveBackgroundTask(c chan string) {
 	
 }
 
-// This will start the operation and assign the ticker 
-// to the active ticker  
-func startTicker()   {
-	ReadAndSend()
-	ticker = time.NewTicker(10 * time.Second)
-	for _ = range ticker.C {
-		ReadAndSend()
-	}
-}
 
-func ReadAndSend() {
-						// reading threads from file
-	err := entity.ReadThreads()
 
-	if err != nil {
-		fmt.Println("Error reading threads ")
-		return
-	}
 
-	bot.SendMessage()
-}
 
 func getUserResfreshBackgroundTask(quit chan string) {
+	
 	for {
 		var userInput string
 		fmt.Scanln(&userInput)
@@ -77,16 +52,13 @@ func getUserResfreshBackgroundTask(quit chan string) {
 			// sc := make(chan os.Signal, 1)
 			// signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 			// <-sc
-			quit <- config.REFRESH
+			quit <- metadata.REFRESH
 			// go threadKeepAliveBackgroundTask()
 		}
 	}
 }
 
 func main() {
-
-	// for  {
-
 		err := config.ReadConfig()
 
 		if err != nil {
@@ -94,17 +66,19 @@ func main() {
 
 		}
 
-		bot.Start()
+		bot.StartBot()
 
+		// NOTE only one channel is used fo controlling app
 		c := make(chan string)
-		// quitFinal := make(chan bool)
 
 		// keeping the task in the background up and running
 		go threadKeepAliveBackgroundTask(c)
 
+		// keeping the user input task running in the background
 		go getUserResfreshBackgroundTask(c)
 
-		c <- config.REFRESH
+		// starts the process
+		c <- metadata.REFRESH
 
 		// for range quitStart{
 		// 	// quitValue   := <- quitStart
