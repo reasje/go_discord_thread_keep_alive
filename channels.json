@@ -10,5 +10,11 @@
         "description": "This a test channel",
         "type": "channel",
         "id": "948483709718376449"
-    }    
+    },
+    {
+        "name": "test3",
+        "description": "This a test channel",
+        "type": "channel",
+        "id": "950339768514928711"
+    }          
 ]

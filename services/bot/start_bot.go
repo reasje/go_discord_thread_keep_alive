@@ -19,13 +19,13 @@ func StartBot() {
 		return
 	}
 
-	// opens a connection to discord
-	err = storage.GoBot.Open()
-	//Error handling
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+	// // opens a connection to discord
+	// err = storage.GoBot.Open()
+	// //Error handling
+	// if err != nil {
+	// 	fmt.Println(err.Error())
+	// 	return
+	// }
 	//If every thing works fine we will be printing this.
 	fmt.Println("Bot is running !")
 }
