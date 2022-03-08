@@ -10,7 +10,7 @@ import (
 // to the active ticker
 func StartTicker() {
 	KeepAlive()
-	storage.Ticker = time.NewTicker(1 * time.Hour)
+	storage.Ticker = time.NewTicker(24 * time.Hour)
 	for _ = range storage.Ticker.C {
 		KeepAlive()
 	}
